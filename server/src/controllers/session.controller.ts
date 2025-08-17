@@ -1,10 +1,12 @@
 import express from 'express';
 import type { Request, Response } from 'express';
 import { getActiveSession, pauseSession, startSession, stopSession } from '../models/session.model.js';
+import { query } from '../config/db.js';
 
 type StartBody = { start_time?: string };
 type PauseBody = { session_id?: number; pause_time?: string };
 type StopBody = { session_id?: number; end_time?: string };
+type ResumeBody = { session_id?: number; resume_time?: string };
 
 interface AuthenticatedRequest<P = {}, ResBody = unknown, ReqBody = unknown, ReqQuery = unknown>
   extends Request<P, ResBody, ReqBody, ReqQuery> {
@@ -43,8 +45,28 @@ export const pause = async (req: Request<{}, unknown, PauseBody>, res: Response)
   return res.json({ active: false, paused_at: updated.end_time });
 };
 
-export const resume = async (_req: Request, res: Response) => {
-  return res.json({ active: true });
+export const resume = async (req: Request<{}, unknown, ResumeBody>, res: Response) => {
+  const { session_id, resume_time } = req.body ?? {};
+  if (typeof session_id !== 'number' || !Number.isFinite(session_id)) {
+    return res.status(400).json({ error: 'session_id must be a number' });
+  }
+  if (typeof resume_time !== 'string' || resume_time.trim().length === 0) {
+    return res.status(400).json({ error: 'resume_time is required' });
+  }
+
+  // Logic to resume the session
+  const result = await query(
+    `UPDATE study_sessions
+     SET end_time = NULL
+     WHERE id = $1 AND end_time IS NOT NULL
+     RETURNING *`,
+    [session_id]
+  );
+
+  const updated = result.rows?.[0];
+  if (!updated) return res.status(400).json({ error: 'No paused session found' });
+
+  return res.json({ active: true, resumed_at: resume_time });
 };
 
 export const stop = async (req: Request<{}, unknown, StopBody>, res: Response) => {

@@ -36,8 +36,8 @@ export const create = async (
     req.body && 'description' in req.body
       ? (req.body.description === null ? null : String(req.body.description))
       : null;
-  const is_private: boolean | undefined =
-    typeof req.body?.is_private === 'boolean' ? req.body.is_private : undefined;
+  const is_private: boolean =
+    typeof req.body?.is_private === 'boolean' ? req.body.is_private : false;
 
   if (name.trim().length === 0) {
     return res.status(400).json({ error: 'Name is required' });

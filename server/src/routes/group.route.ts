@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { requireAuth } from '../middlewares/auth';
-import { validate } from '../middlewares/validate';
-import { createGroupSchema, groupIdParam } from '../schemas/groups.schema';
-import * as ctrl from '../controllers/groups.controller';
+import { requireAuth } from '../middlewares/auth.js';
+import { validate } from '../middlewares/validate.js';
+import { createGroupSchema, groupIdParam } from '../schemas/group.schema.js';
+import * as ctrl from '../controllers/group.controller.js';
 
 const r = Router();
 

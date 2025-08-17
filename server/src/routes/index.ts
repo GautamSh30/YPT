@@ -8,7 +8,7 @@ const router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/groups', groupsRoutes);
-router.use('/groups', messagesRoutes); // nested under /groups/:id/messages
+router.use('/groups/:id/messages', messagesRoutes); // Correctly nested under /groups/:id/messages
 router.use('/sessions', sessionsRoutes);
 
 export default router;

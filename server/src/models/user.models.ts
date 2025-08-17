@@ -26,13 +26,22 @@ export const createUser = async (data: {
   oauth_provider?: string | null;
   oauth_id?: string | null;
 }) => {
-  const { cols, params, values } = toDbColumns(data);
-  const { rows } = await query(
-    `INSERT INTO users (${cols}) VALUES (${params}) RETURNING *`,
-    values
-  );
+  // Build dynamic column/value lists safely
+  const entries = Object.entries(data).filter(([, v]) => v !== undefined);
+  if (entries.length === 0) {
+    throw new Error('No fields provided for insert');
+  }
+
+  const cols = entries.map(([k]) => k).join(', ');
+  const params = entries.map(([, _], i) => `$${i + 1}`).join(', ');
+  const values = entries.map(([, v]) => v);
+
+  const text = `INSERT INTO users (${cols}) VALUES (${params}) RETURNING *`;
+
+  const { rows } = await query(text, values);
   return rows[0] as User;
 };
+
 
 export const findById = async (id: number) => {
   const { rows } = await query(
